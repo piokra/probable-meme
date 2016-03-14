@@ -8,7 +8,7 @@ workload read_vectors_from_file(char* filename)
     vp_growing_array arr = growing_array_create();
     float input[3];
 
-    while((fscanf(file,"%f%f%f",input,input+1,input+2)>2)
+    while(fscanf(file,"%f%f%f",input,input+1,input+2)>2)
     {
         growing_array_add(arr,input,sizeof(float)*3);
     }

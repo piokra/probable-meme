@@ -8,7 +8,7 @@ typedef struct
     float y;
     float z;
 } vector3;
-struct
+typedef struct
 {
     int size;
     vector3* vectors;
@@ -18,12 +18,12 @@ struct
 
 typedef void* vp_growing_array;
 
-struct growing_array
+typedef struct
 {
     int size;
     int max_size;
     void* buffer;
-};
+} growing_array;
 
 vp_growing_array growing_array_create();
 void growing_array_free(vp_growing_array arr);

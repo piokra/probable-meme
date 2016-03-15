@@ -13,7 +13,14 @@ typedef struct
     int size;
     vector3* vectors;
 } workload;
+typedef struct
+{
 
+    double read_data_time;
+    double process_data_time;
+    double reduce_results_time;
+    double total;
+} worktime;
 //utility structures
 
 typedef void* vp_growing_array;

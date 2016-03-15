@@ -7,6 +7,7 @@
 #include "structs.h"
 
 #define MIN(x,y) (((x) > (y)) ? (y) : (x))
+
 workload select_workload(workload wl, int rank, int size)
 {
     int workload_size = (rank < wl.size % size) ? wl.size/size+1 : wl.size/size;
@@ -27,6 +28,6 @@ workload select_workload(workload wl, int rank, int size)
 
     return ret;
 }
-#undef MIN(x,y)
+#undef MIN
 #endif // __WORKLOAD_DISTRIBUTION_H__
 

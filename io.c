@@ -22,3 +22,21 @@ workload read_vectors_from_file(char* filename)
     return wr;
 
 }
+
+void log_worktimes(worktime* worktimes, int count)
+{
+    FILE* file = fopen("worktimes.log", "w");
+    fprintf(file, "Worktimes by proc: \n");
+    for(int i=0; i<count; i++)
+    {
+
+        fprintf(file, "Proc: %d\n", i);
+        fprintf(file, "\t%-15s %.6lf\n","read_data",worktimes[i].read_data_time);
+        fprintf(file, "\t%-15s %.6lf\n","process_data",worktimes[i].process_data_time);
+        fprintf(file, "\t%-15s %.6lf\n","reduce_results",worktimes[i].reduce_results_time);
+        fprintf(file, "\t%-15s %.6lf\n\n","total",worktimes[i].total);
+
+    }
+
+    fclose(file);
+}

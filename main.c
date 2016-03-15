@@ -4,6 +4,8 @@
 #include "io.h"
 #include "workload_distribution.h"
 #include "vectors.h"
+#include "communication.h"
+
 //global variables
 int rank;
 int size;
@@ -41,12 +43,16 @@ void do_what_master_does()
     scanf("%s",filename);
     MPI_Bcast(filename,32,MPI_CHAR,0,MPI_COMM_WORLD);
 
-    do_work();
+    worktime* worktimes = do_work();
+
     float fn = vector_count;
     float x = result_vector.x/fn;
     float y = result_vector.y/fn;
     float z = result_vector.z/fn;
-    printf("%f %f %f %f\n",result_length/fn, x,y,z);
+
+    printf("Length: %f\nCoords: %f %f  %f.\n",result_length/fn, x,y,z);
+
+    log_worktimes(worktimes,size);
 }
 
 void do_what_slave_does()

@@ -8,6 +8,14 @@ typedef struct
     float y;
     float z;
 } vector3;
+
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+    float l;
+} vector4;
 typedef struct
 {
     int size;

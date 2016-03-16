@@ -50,9 +50,9 @@ void log_worktimes(worktime* worktimes, int count)
     }
 
     fprintf(file, "Total: %d\n", i);
-    fprintf(file, "\t%-15s %.6lf\n","read_data",total_read_data_time);
-    fprintf(file, "\t%-15s %.6lf\n","process_data",total_process_data_time);
-    fprintf(file, "\t%-15s %.6lf\n","reduce_results",total_reduce_results_time);
+    fprintf(file, "\t%-15s %.6lf\n","read_data",total_read_data);
+    fprintf(file, "\t%-15s %.6lf\n","process_data",total_process_data);
+    fprintf(file, "\t%-15s %.6lf\n","reduce_results",total_reduce_results);
     fprintf(file, "\t%-15s %.6lf\n\n","total",total_total);
 
 

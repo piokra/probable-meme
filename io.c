@@ -11,6 +11,7 @@ typedef struct
 } formatted_char_buffer;
 //local function declaration
 vector3 lines_to_workload(char* line_start, int size);
+float chars_to_float(char* start, int lenght);
 
 
 workload read_vectors_from_file(char* filename)
@@ -105,15 +106,10 @@ vector3 line_to_vector(char* line_start, int size)
         
     if(regcomp(&regex_compiled, regex_string, REG_EXTENDED))
         exit(420);
-        
-    char float_buffer[10];
     
-    for(int i = 0; i<group_count; i++)
+    for(int i=0; i<vector_count; i++)
     {
-        int len = regex_match_groups[i].eo - regex_match_groups[i].so;
-        int start = regex_match_groups[i].so;
-        memcpy(float_buffer, line_start+start, len);
-        float_buffer[len] = 0;
+        ret->vectors[i].x = chars_to_float()
     }
     
     
@@ -122,3 +118,10 @@ vector3 line_to_vector(char* line_start, int size)
     return t;
 }
 
+float chars_to_float(char* source, int length)
+{
+    char buffer[length+1];//c99
+    memcpy(buffer,source,length);
+    buffer[length] = 0;
+    return atof(buffer);
+}

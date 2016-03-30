@@ -1,6 +1,17 @@
 #include "io.h"
 #include "structs.h"
+#include "workload_distribution.h"
 #include <stdio.h>
+#include <regex.h>
+//local structs
+typedef struct
+{
+    int size;
+    char* char_buffer;
+} formatted_char_buffer;
+//local function declaration
+vector3 lines_to_workload(char* line_start, int size);
+
 
 workload read_vectors_from_file(char* filename)
 {
@@ -20,6 +31,28 @@ workload read_vectors_from_file(char* filename)
     fclose(file);
     growing_array_free(arr);
     return wr;
+
+}
+
+workload read_vectors_from_file_parallel(char* filename, int rank, int size)
+{
+    
+    MPI_File file;
+    MPI_Info info = MPI_INFO_NULL;
+    if(!MPI_File_open(MPI_COMM_WORLD,filename,MPI_MODE_RDONLY,info,&file))
+        exit(420);
+    MPI_Offset offset = 0;
+    int filesize = MPI_File_get_size(file,offset);
+    int readstart, readsize;
+    count_work_info(filesize, rank, size, &readstart, &readsize);
+    offset = readstart;
+    MPI_File_seek(file, offset, MPI_SEEK_SET);
+    char* buffer = malloc(readsize);
+    MPI_Status status;
+    MPI_File_read(file,buffer,readsize,MPI_CHAR,&status);
+    MPI_File_close(&file);
+    
+    return lines_to_vector(buffer,readsize);
 
 }
 
@@ -58,3 +91,34 @@ void log_worktimes(worktime* worktimes, int count)
 
     fclose(file);
 }
+
+vector3 line_to_vector(char* line_start, int size)
+{
+
+    vector3 t;
+    int vector_count = size/120;
+    int group_count = vector_count*3;
+    char* regex_string = "\s*([[0-9].-]*)";
+    regex_t regex_compiled;
+    regmatch_t* regex_match_groups = malloc(sizeof(regmatch_t)*group_count);
+    workload* ret = malloc(sizeof(workload)*vector_count);
+        
+    if(regcomp(&regex_compiled, regex_string, REG_EXTENDED))
+        exit(420);
+        
+    char float_buffer[10];
+    
+    for(int i = 0; i<group_count; i++)
+    {
+        int len = regex_match_groups[i].eo - regex_match_groups[i].so;
+        int start = regex_match_groups[i].so;
+        memcpy(float_buffer, line_start+start, len);
+        float_buffer[len] = 0;
+    }
+    
+    
+    
+    free(regex_match_groups);
+    return t;
+}
+

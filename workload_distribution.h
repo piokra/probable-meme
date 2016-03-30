@@ -4,7 +4,8 @@
 #include "structs.h"
 
 workload select_workload(workload wl, int rank, int size);
-int count_part_size(int worksize, int rank, int size);
+void count_work_info(int worksize, int rank, int size, int* startbuf, int* sizebuf);
+
 
 #endif // __WORKLOAD_DISTRIBUTION_H__
 

@@ -3,18 +3,14 @@
 #include "workload_distribution.h"
 #include <stdio.h>
 #include <regex.h>
-//local structs
-typedef struct
-{
-    int size;
-    char* char_buffer;
-} formatted_char_buffer;
-//local function declaration
-vector3 lines_to_workload(char* line_start, int size);
-float chars_to_float(char* start, int lenght);
+#include <mpi.h>
+#include <stdlib.h>
+//local function definition
+workload formatted_buffer_to_workload(char* buffer, int size);
 
 
-workload read_vectors_from_file(char* filename)
+
+workload read_vectors_from_file(char* filename, int rank, int size)
 {
     FILE* file = fopen(filename, "r");
     vp_growing_array arr = growing_array_create();
@@ -31,50 +27,66 @@ workload read_vectors_from_file(char* filename)
 
     fclose(file);
     growing_array_free(arr);
-    return wr;
+    return select_workload(wr,rank,size);
 
 }
 
 workload read_vectors_from_file_parallel(char* filename, int rank, int size)
 {
-    
+
     MPI_File file;
     MPI_Info info = MPI_INFO_NULL;
-    if(!MPI_File_open(MPI_COMM_WORLD,filename,MPI_MODE_RDONLY,info,&file))
-        exit(420);
     MPI_Offset offset = 0;
-    int filesize = MPI_File_get_size(file,offset);
-    int readstart, readsize;
-    count_work_info(filesize, rank, size, &readstart, &readsize);
-    offset = readstart;
-    MPI_File_seek(file, offset, MPI_SEEK_SET);
-    char* buffer = malloc(readsize);
     MPI_Status status;
-    MPI_File_read(file,buffer,readsize,MPI_CHAR,&status);
+
+    int readstart, readsize;
+
+    int filesize = 0;
+
+    if(MPI_File_open(MPI_COMM_WORLD,filename,MPI_MODE_RDONLY,info,&file))
+        exit(MPI_FILE_NULL);
+
+    MPI_File_get_size(file,&filesize);
+
+    count_work_info(filesize/40, rank, size, &readstart, &readsize);
+
+    char* buffer = malloc(readsize*40);
+
+    offset = readstart*40;
+
+    MPI_File_seek(file, offset, MPI_SEEK_SET);
+    MPI_File_read(file,buffer,readsize*40,MPI_CHAR,&status);
     MPI_File_close(&file);
-    
-    return lines_to_vector(buffer,readsize);
+
+
+    workload ret = formatted_buffer_to_workload(buffer,readsize*40);
+    ret.total_size = filesize/40;
+    free(buffer);
+
+    return ret;
 
 }
 
-void log_worktimes(worktime* worktimes, int count)
+void log_worktimes(worktime* worktimes, int count, char* tag)
 {
-    FILE* file = fopen("worktimes.log", "w");
+    char buffer[32];
+    sprintf(buffer,"worktimes_%s.log",tag);
+    FILE* file = fopen(buffer, "w");
     fprintf(file, "Worktimes by proc: \n");
-    
+
     double total_read_data = 0;
     double total_process_data = 0;
     double total_reduce_results = 0;
     double total_total = 0;
-    
+
     for(int i=0; i<count; i++)
     {
-        
+
         total_read_data += worktimes[i].read_data_time;
         total_process_data += worktimes[i].process_data_time;
         total_reduce_results += worktimes[i].reduce_results_time;
         total_total += worktimes[i].total;
-        
+
         fprintf(file, "Proc: %d\n", i);
         fprintf(file, "\t%-15s %.6lf\n","read_data",worktimes[i].read_data_time);
         fprintf(file, "\t%-15s %.6lf\n","process_data",worktimes[i].process_data_time);
@@ -92,36 +104,25 @@ void log_worktimes(worktime* worktimes, int count)
 
     fclose(file);
 }
-
-vector3 line_to_vector(char* line_start, int size)
+workload formatted_buffer_to_workload(char* buffer, int size)
 {
+    int vectorc = size/40;
+    vector3* vectors = malloc(sizeof(vector3)*vectorc);
+    workload ret;
+    ret.size = vectorc;
+    ret.vectors = vectors;
 
-    vector3 t;
-    int vector_count = size/120;
-    int group_count = vector_count*3;
-    char* regex_string = "\s*([[0-9].-]*)";
-    regex_t regex_compiled;
-    regmatch_t* regex_match_groups = malloc(sizeof(regmatch_t)*group_count);
-    workload* ret = malloc(sizeof(workload)*vector_count);
-        
-    if(regcomp(&regex_compiled, regex_string, REG_EXTENDED))
-        exit(420);
-    
-    for(int i=0; i<vector_count; i++)
+    for (int i = 0; i<vectorc ; i++ )
     {
-        ret->vectors[i].x = chars_to_float()
+
+        vectors[i].x = atof(buffer+40*i);
+        vectors[i].y = atof(buffer+40*i+13);
+        vectors[i].z = atof(buffer+40*i+26);
+        //printf("%f %f %f\n",vectors[i].x, vectors[i].y, vectors[i].z);
     }
-    
-    
-    
-    free(regex_match_groups);
-    return t;
+
+    return ret;
+
 }
 
-float chars_to_float(char* source, int length)
-{
-    char buffer[length+1];//c99
-    memcpy(buffer,source,length);
-    buffer[length] = 0;
-    return atof(buffer);
-}
+

@@ -23,7 +23,7 @@ workload select_workload(workload wl, int rank, int size)
         buffer = malloc(3*workload_size*sizeof(float));
         memcpy(buffer,wl.vectors+workload_start,3*workload_size*sizeof(float));
     }
-
+    ret.total_size = wl.size;
     free(wl.vectors);
     ret.vectors = buffer;
     ret.size = workload_size;
@@ -35,7 +35,7 @@ workload select_workload(workload wl, int rank, int size)
 void count_work_info(int worksize, int rank, int size, int* startbuf, int* sizebuf)
 {
     *sizebuf = (rank < worksize % size) ? worksize/size+1 : worksize/size;
-    *startbuf = worksize/size*rank+MIN(worksize%size,rank); 
+    *startbuf = worksize/size*rank+MIN(worksize%size,rank);
 }
 
 

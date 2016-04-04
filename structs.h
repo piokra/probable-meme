@@ -19,6 +19,7 @@ typedef struct
 typedef struct
 {
     int size;
+    int total_size;
     vector3* vectors;
 } workload;
 typedef struct
